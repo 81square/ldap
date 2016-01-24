@@ -118,6 +118,7 @@ class SearchPreloaded implements SearchInterface
     {
         $this->previous = null;
         $this->isEndReached = false;
+        $this->currIndex = -1;
     }
 
     /**
