@@ -285,9 +285,10 @@ class Manager
         $attributes = (is_array($attributes)) ? $attributes : null;
         $scope = $inDepth ? SearchInterface::SCOPE_ALL : SearchInterface::SCOPE_ONE;
         $pageSize = isset($this->configuration['page_size']) ? (int)($this->configuration['page_size']) : 0;
-        
+        $eagerLoad = isset($this->configuration['eager_load']) ? (bool)($this->configuration['eager_load']) : true;
+
         try {
-            $search = $this->connection->search($scope, $baseDn, $filter, $attributes, $pageSize);
+            $search = $this->connection->search($scope, $baseDn, $filter, $attributes, $pageSize, $eagerLoad);
         } catch (NoResultException $e) {
             return $result;
         }

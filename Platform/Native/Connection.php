@@ -304,12 +304,15 @@ class Connection implements ConnectionInterface
     /**
      * Searches for entries in the directory
      *
-     * @param int     $scope      Search scope (ALL, ONE or BASE)
-     * @param string  $baseDn     Base distinguished name to look below
-     * @param string  $filter     Filter for the search
-     * @param array   $attributes Names of attributes to retrieve (Default: All)
-     * @param int     $pageSize   Page size (Default: 0, no paging)
-     * 
+     * @param int    $scope      Search scope (ALL, ONE or BASE)
+     * @param string $baseDn     Base distinguished name to look below
+     * @param string $filter     Filter for the search
+     * @param array  $attributes Names of attributes to retrieve (Default: All)
+     * @param int    $pageSize   Page size (Default: 0, no paging)
+     * @param bool   $eagerLoad  Set to true to load all entries into the
+     *                           search result, false to load on demand as each
+     *                           page is exhausted (Default: true)
+     *
      * @return SearchInterface Search result set
      *
      * @throws NoResultException if no result can be retrieved
@@ -317,10 +320,15 @@ class Connection implements ConnectionInterface
      * @throws MalformedFilterException if filter is wrongly formatted
      * @throws SearchException if search failed otherwise
      */
-    public function search($scope, $baseDn, $filter, $attributes = null, $pageSize = 0)
+    public function search($scope, $baseDn, $filter, $attributes = null, $pageSize = 0, $eagerLoad = true)
     {
         // For now we only support paging on search
         if ($pageSize > 0 && $scope === SearchInterface::SCOPE_ALL) {
+            if (!$eagerLoad)
+            {
+                return new SearchIterator($this->connection, $baseDn, $filter, $attributes, $pageSize);
+            }
+
             // Do paged search
             return $this->searchLdapPaged($pageSize, $baseDn, $filter, $attributes);
         }
@@ -349,7 +357,7 @@ class Connection implements ConnectionInterface
         $search = @call_user_func_array($function, $params);
         if (false === $search) {
             // Something went wrong
-            throw $this->createLdapSearchException(@ldap_errno($this->connection), $baseDn, $filter);
+            throw self::createLdapSearchException(@ldap_errno($this->connection), $baseDn, $filter);
         }
 
         return new Search($this->connection, $search);
@@ -378,13 +386,13 @@ class Connection implements ConnectionInterface
             $search = ldap_search($this->connection, $baseDn, $filter, is_array($attributes) ? $attributes : array());
             if (!$search) {
                 // Something went wrong in search
-                throw $this->createLdapSearchException(ldap_errno($this->connection), $baseDn, $filter, $pageSize);
+                throw self::createLdapSearchException(ldap_errno($this->connection), $baseDn, $filter, $pageSize);
             }
 
             $entries = ldap_get_entries($this->connection, $search);
             if(!$entries) {
                 // No entries?
-                throw $this->createLdapSearchException(ldap_errno($this->connection), $baseDn, $filter, $pageSize);
+                throw self::createLdapSearchException(ldap_errno($this->connection), $baseDn, $filter, $pageSize);
             }
             
             // Ok add all entries
@@ -399,14 +407,14 @@ class Connection implements ConnectionInterface
 
     /**
      * Create an exception for ldap error code
-     * 
+     *
      * @param int     $code     LDAP error code
      * @param string  $baseDn   Base distinguished name to look below
      * @param string  $filter   Filter for the search
      * @param int     $pageSize PageSize
      * @return \Toyota\Component\Ldap\Exception\SizeLimitException|\Toyota\Component\Ldap\Exception\NoResultException|\Toyota\Component\Ldap\Exception\MalformedFilterException|\Toyota\Component\Ldap\Exception\SearchException
      */
-    protected function createLdapSearchException($code, $baseDn, $filter, $pageSize = 0)
+    public static function createLdapSearchException($code, $baseDn, $filter, $pageSize = 0)
     {
         switch ($code) {
 

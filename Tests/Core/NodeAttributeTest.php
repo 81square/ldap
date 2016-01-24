@@ -453,4 +453,17 @@ class NodeAttributeTest extends TestCase
             'Diff tracking has been reset'
         );
     }
+
+    /**
+     * Shows that case sensitivity switch correctly returns attributes
+     */
+    public function testCaseSensitivity()
+    {
+        $test = new NodeAttribute('Test', null, true);
+        $this->assertEquals('Test', $test->getName());
+
+        // default is no sensitivity
+        $test = new NodeAttribute('Test', null);
+        $this->assertEquals('test', $test->getName());
+    }
 }

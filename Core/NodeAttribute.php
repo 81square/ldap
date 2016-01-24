@@ -30,17 +30,26 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
 
     protected $tracker = null;
 
+    protected $caseSensitive = false;
+
     /**
      * Default constructor
      *
-     * @param string      $name    Name of the attribute
-     * @param DiffTracker $tracker Utility to track diff (Optional)
+     * @param string      $name          Name of the attribute
+     * @param DiffTracker $tracker       Utility to track diff (Optional)
+     * @param bool        $caseSensitive Set to true to allow this attribute to be case-sensitive, false for
+     *                                   insensitive (default: false)
      *
      * @return NodeAttribute
      */
-    public function __construct($name, DiffTracker $tracker = null)
+    public function __construct($name, DiffTracker $tracker = null, $caseSensitive = false)
     {
+        if (!$caseSensitive) {
+            $name = strtolower($name);
+        }
+
         $this->name = $name;
+        $this->caseSensitive = $caseSensitive;
 
         $this->tracker = (null === $tracker)?(new DiffTracker()):$tracker;
     }

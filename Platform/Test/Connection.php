@@ -299,6 +299,10 @@ class Connection implements ConnectionInterface
      * @param string  $baseDn     Base distinguished name to look below
      * @param string  $filter     Filter for the search
      * @param array   $attributes Names of attributes to retrieve (Default: All)
+     * @param int     $pageSize   Page size (Default: 0, no paging)
+     * @param bool    $eagerLoad  Set to true to load all entries into the
+     *                            search result, false to load on demand as each
+     *                            page is exhausted (Default: true)
      *
      * @return SearchInterface Search result set
      *
@@ -307,7 +311,7 @@ class Connection implements ConnectionInterface
      * @throws MalformedFilterException if filter is wrongly formatted
      * @throws SearchException if search failed otherwise
      */
-    public function search($scope, $baseDn, $filter, $attributes = null)
+    public function search($scope, $baseDn, $filter, $attributes = null, $pageSize = 0, $eagerLoad = true)
     {
         $this->processSearchFailure();
 

@@ -26,17 +26,21 @@ class Node
     protected $attributes = array();
     public $tracker = null;
     protected $isHydrated = false;
+    protected $caseSensitive = false;
 
     /**
      * Default Node Constructor
      *
-     * @param DiffTracker $tracker Utility for tracking changes (Optional)
+     * @param DiffTracker $tracker       Utility for tracking changes (Optional)
+     * @param bool        $caseSensitive Set to true for this Node to store attributes names as case-sensitive, false
+     *                                   for insensitive (default: false)
      *
      * @return Node
      */
-    public function __construct(DiffTracker $tracker = null)
+    public function __construct(DiffTracker $tracker = null, $caseSensitive = false)
     {
         $this->tracker = (null === $tracker) ? (new DiffTracker()) : $tracker;
+        $this->caseSensitive = $caseSensitive;
     }
 
     /**
@@ -53,7 +57,7 @@ class Node
         $this->attributes = array();
 
         foreach ($entry->getAttributes() as $name => $data) {
-            $attr = new NodeAttribute($name);
+            $attr = new NodeAttribute($name, null, $this->caseSensitive);
             $attr->add($data);
             $this->mergeAttribute($attr);
         }
@@ -141,6 +145,9 @@ class Node
      */
     public function removeAttribute($name)
     {
+        if (!$this->caseSensitive) {
+            $name = strtolower($name);
+        }
         if (!$this->has($name)) {
             return false;
         }
@@ -159,11 +166,14 @@ class Node
      */
     public function get($name, $create = false)
     {
+        if (!$this->caseSensitive) {
+            $name = strtolower($name);
+        }
         if (!$this->has($name)) {
             if (!$create) {
                 return null;
             }
-            $this->mergeAttribute(new NodeAttribute($name));
+            $this->mergeAttribute(new NodeAttribute($name, null, $this->caseSensitive));
         }
         return $this->attributes[$name];
     }
@@ -177,6 +187,9 @@ class Node
      */
     public function has($name)
     {
+        if (!$this->caseSensitive) {
+            $name = strtolower($name);
+        }
         return isset($this->attributes[$name]);
     }
 

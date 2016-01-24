@@ -786,4 +786,33 @@ class NodeTest extends TestCase
             'h replacement was computed as an addition on origin node'
         );
     }
+
+    public function testCaseSensitivity()
+    {
+        $node = new Node(null, true);
+        $node->get('A', true)->add(array('upper'));
+        $node->get('a', true)->add(array('lower'));
+        $this->assertArraySubset(['upper'], $node->get('A')->getValues());
+        $this->assertArraySubset(['lower'], $node->get('a')->getValues());
+
+        $this->assertTrue($node->has('A'));
+        $this->assertTrue($node->has('a'));
+
+        $node->removeAttribute('a');
+        $this->assertArraySubset(['upper'], $node->get('A')->getValues());
+        $this->assertEmpty($node->get('a'));
+
+        // default is no case sensitivity
+        $node = new Node();
+        $node->get('A', true)->add(array('upper'));
+        $node->get('a', true)->add(array('lower'));
+
+        // both will be lower
+        $this->assertArraySubset(['upper', 'lower'], $node->get('A')->getValues());
+        $this->assertArraySubset(['upper', 'lower'], $node->get('a')->getValues());
+
+        $node->removeAttribute('A');
+        $this->assertFalse($node->has('A'));
+        $this->assertFalse($node->has('a'));
+    }
 }
