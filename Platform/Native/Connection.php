@@ -326,11 +326,6 @@ class Connection implements ConnectionInterface
         }
 
         // Ok regular 'search' with no paging
-        // Reset paged result setting (it may have been set in a previous operation)
-        if (!@ldap_control_paged_result($this->connection, 0)) {
-            throw new SearchException("Unable to reset paged control");
-        }
-
         switch ($scope) {
             case SearchInterface::SCOPE_BASE:
                 $function = 'ldap_read';
