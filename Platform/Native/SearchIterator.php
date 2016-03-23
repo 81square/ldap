@@ -110,7 +110,12 @@ class SearchIterator implements SearchInterface
 			$this->loadPage();
 		}
 
-		return new EntryPreloaded($this->entries[$this->entriesPosition++]);
+		// If now able to get the entry, then return it
+		if (isset($this->entries[$this->entriesPosition])) {
+			return new EntryPreloaded($this->entries[$this->entriesPosition++]);
+		}
+
+		return null;
 	}
 
 	/**
